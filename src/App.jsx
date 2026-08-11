@@ -1,22 +1,28 @@
 import './App.css'
-import Sidebar from "./components/Sidebar.jsx";
 import Dashboard from "./components/Dashboard.jsx";
+import ProtectedLayout from "./components/ProtectedLayout.jsx";
+import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import ProductoPage from "./pages/ProductoPage.jsx";
 import ReportesPage from "./pages/ReportesPage.jsx";
 import VentaPage from "./pages/VentaPage.jsx";
+import LoginPage from "./pages/LoginPage.jsx";
 
 function App() {
+
     return (
         <BrowserRouter>
 
-            <div className="app">
+            <Routes>
 
-                <Sidebar />
+                <Route
+                    path="/login"
+                    element={<LoginPage />}
+                />
 
-                <main className="main-content">
+                <Route element={<ProtectedRoute />}>
 
-                    <Routes>
+                    <Route element={<ProtectedLayout />}>
 
                         <Route
                             path="/"
@@ -48,11 +54,11 @@ function App() {
                             element={<ReportesPage />}
                         />
 
-                    </Routes>
+                    </Route>
 
-                </main>
+                </Route>
 
-            </div>
+            </Routes>
 
         </BrowserRouter>
     )

@@ -1,6 +1,16 @@
-import {Link} from "react-router-dom";
+import {Link, useNavigate} from "react-router-dom";
 
 function Sidebar() {
+
+    const navigate = useNavigate();
+
+    const cerrarSesion = () => {
+
+        localStorage.removeItem("token");
+
+        navigate("/login");
+    };
+
     return (
         <aside className="sidebar">
 
@@ -29,6 +39,14 @@ function Sidebar() {
                     📊
                     <span>Reportes</span>
                 </Link>
+
+                <button
+                    onClick={cerrarSesion}
+                    className="menu-button"
+                >
+                    🚪
+                    <span>Cerrar sesión</span>
+                </button>
 
             </nav>
 

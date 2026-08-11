@@ -1,16 +1,11 @@
-const API_URL = import.meta.env.VITE_API_URL
+import { apiFetch } from './api'
 
 export const registrarVenta = async (venta) => {
 
-    const response = await fetch(
-        `${API_URL}/punto-venta/ventas/crear-venta`,
+    const response = await apiFetch(
+        '/punto-venta/ventas/crear-venta',
         {
             method: 'POST',
-
-            headers: {
-                'Content-Type': 'application/json'
-            },
-
             body: JSON.stringify(venta)
         }
     )
@@ -29,7 +24,7 @@ export const registrarVenta = async (venta) => {
                 mensaje
 
         } catch {
-            console.log("error")
+            console.log('La respuesta no contiene JSON')
         }
 
         throw new Error(mensaje)

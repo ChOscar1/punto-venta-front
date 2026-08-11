@@ -1,9 +1,9 @@
-const API_URL = import.meta.env.VITE_API_URL
+import { apiFetch } from './api'
 
 export const obtenerProductos = async () => {
 
-    const response = await fetch(
-        `${API_URL}/punto-venta/productos/obtener-productos`
+    const response = await apiFetch(
+        '/punto-venta/productos/obtener-productos'
     )
 
     const data = await response.json()
@@ -17,15 +17,13 @@ export const obtenerProductos = async () => {
     return data
 }
 
+
 export const crearProducto = async (producto) => {
 
-    const response = await fetch(
-        `${API_URL}/punto-venta/productos/crear-producto`,
+    const response = await apiFetch(
+        '/punto-venta/productos/crear-producto',
         {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
             body: JSON.stringify(producto)
         }
     )
@@ -41,15 +39,13 @@ export const crearProducto = async (producto) => {
     return data
 }
 
+
 export const actualizarProducto = async (id, producto) => {
 
-    const response = await fetch(
-        `${API_URL}/punto-venta/productos/actualizar-producto/${id}`,
+    const response = await apiFetch(
+        `/punto-venta/productos/actualizar-producto/${id}`,
         {
             method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json'
-            },
             body: JSON.stringify(producto)
         }
     )
@@ -68,8 +64,8 @@ export const actualizarProducto = async (id, producto) => {
 
 export const obtenerProducto = async (id) => {
 
-    const response = await fetch(
-        `${API_URL}/punto-venta/productos/obtener-producto/${id}`
+    const response = await apiFetch(
+        `/punto-venta/productos/obtener-producto/${id}`
     )
 
     const data = await response.json()
@@ -86,8 +82,8 @@ export const obtenerProducto = async (id) => {
 
 export const eliminarProducto = async (id) => {
 
-    const response = await fetch(
-        `${API_URL}/punto-venta/productos/eliminar-producto/${id}`,
+    const response = await apiFetch(
+        `/punto-venta/productos/eliminar-producto/${id}`,
         {
             method: 'DELETE'
         }

@@ -1,9 +1,9 @@
-const API_URL = import.meta.env.VITE_API_URL
+import { apiFetch } from './api'
 
 export const obtenerCategorias = async () => {
 
-    const response = await fetch(
-        `${API_URL}/punto-venta/categorias/listar-categorias`
+    const response = await apiFetch(
+        '/punto-venta/categorias/listar-categorias'
     )
 
     const data = await response.json()

@@ -1,9 +1,9 @@
-const API_URL = import.meta.env.VITE_API_URL
+import { apiFetch } from './api'
 
 export const descargarReporteExcel = async (fecha) => {
 
-    const response = await fetch(
-        `${API_URL}/punto-venta/reporte/ventas/excel?fecha=${fecha}`
+    const response = await apiFetch(
+        `/punto-venta/reporte/ventas/excel?fecha=${fecha}`
     )
 
     if (!response.ok) {
@@ -17,7 +17,7 @@ export const descargarReporteExcel = async (fecha) => {
             mensaje = data.message || mensaje
 
         } catch {
-            console.log("No era JSON la respuesta")
+            console.log('No era JSON la respuesta')
         }
 
         throw new Error(mensaje)
