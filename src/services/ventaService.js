@@ -32,3 +32,44 @@ export const registrarVenta = async (venta) => {
 
     return await response.json()
 }
+
+
+export const obtenerPedidosPendientes = async () => {
+
+    const response = await apiFetch(
+        '/punto-venta/pedidos/obtener-pedidos-pendientes'
+    )
+
+    const data = await response.json()
+
+    if (!response.ok) {
+        throw new Error(
+            data.message ||
+            'Error al obtener los pedidos pendientes'
+        )
+    }
+
+    return data
+}
+
+
+export const entregarPedido = async (id) => {
+
+    const response = await apiFetch(
+        `/punto-venta/pedidos/entregar-pedido/${id}`,
+        {
+            method: 'PUT'
+        }
+    )
+
+    const data = await response.json()
+
+    if (!response.ok) {
+        throw new Error(
+            data.message ||
+            'Error al entregar el pedido'
+        )
+    }
+
+    return data
+}

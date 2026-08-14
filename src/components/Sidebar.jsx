@@ -30,6 +30,14 @@ function Sidebar() {
                     <span>Registrar venta</span>
                 </Link>
 
+                <Link
+                    to="/ventas-pendientes"
+                    className="menu-button"
+                >
+                    ⏳
+                    <span>Ventas pendientes</span>
+                </Link>
+
                 <Link to="/productos" className="menu-button">
                     📦
                     <span>Productos</span>

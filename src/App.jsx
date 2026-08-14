@@ -7,6 +7,7 @@ import ProductoPage from "./pages/ProductoPage.jsx";
 import ReportesPage from "./pages/ReportesPage.jsx";
 import VentaPage from "./pages/VentaPage.jsx";
 import LoginPage from "./pages/LoginPage.jsx";
+import PedidosPendientesPage from "./pages/PedidosPendientesPage.jsx";
 
 function App() {
 
@@ -32,6 +33,11 @@ function App() {
                         <Route
                             path="/venta"
                             element={<VentaPage />}
+                        />
+
+                        <Route
+                            path="/ventas-pendientes"
+                            element={<PedidosPendientesPage />}
                         />
 
                         <Route

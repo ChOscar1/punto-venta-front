@@ -30,6 +30,8 @@ function VentaPage() {
     const [montoDescuento, setMontoDescuento] = useState('')
     const [vendedorDescuentoId, setVendedorDescuentoId] = useState('')
 
+    const [nombreCliente, setNombreCliente] = useState('')
+
     const imagenesProductos = {
         1: alitasImg,
         2: costillasImg,
@@ -125,6 +127,7 @@ function VentaPage() {
                     }
 
                     return [vendedor.id, vendedor]
+
                 })
                 .filter(Boolean)
         ).values()
@@ -198,6 +201,7 @@ function VentaPage() {
                     return total +
                         producto.precio *
                         producto.cantidad
+
                 },
                 0
             )
@@ -325,6 +329,11 @@ function VentaPage() {
             return
         }
 
+        if (!nombreCliente.trim()) {
+            alert('Debes ingresar el nombre del cliente')
+            return
+        }
+
         if (!metodoPago) {
             alert(
                 'Debes seleccionar un método de pago'
@@ -368,6 +377,7 @@ function VentaPage() {
         }
 
         const venta = {
+            nombreCliente: nombreCliente.trim(),
             metodoPago,
             descuento: tieneDescuento
                 ? Number(montoDescuento)
@@ -385,11 +395,12 @@ function VentaPage() {
 
         try {
 
-            const respuestas =
+            const respuesta =
                 await registrarVenta(venta)
 
-            setVentaRegistrada(respuestas)
+            setVentaRegistrada(respuesta)
             setCarrito([])
+            setNombreCliente('')
             setMetodoPago('')
             setTieneDescuento(false)
             setMontoDescuento('')
@@ -406,33 +417,37 @@ function VentaPage() {
         }
     }
 
+    /*
+     * Ahora ventaRegistrada es un Pedido,
+     * por lo que las ventas están dentro de:
+     *
+     * ventaRegistrada.ventas
+     */
+
+    const ventasRegistradas =
+        ventaRegistrada?.ventas || []
+
     const subtotalCompraRegistrada =
-        ventaRegistrada
-            ? ventaRegistrada.reduce(
-                (total, venta) =>
-                    total + venta.subtotal,
-                0
-            )
-            : 0
+        ventasRegistradas.reduce(
+            (total, venta) =>
+                total + venta.subtotal,
+            0
+        )
 
     const descuentoCompraRegistrada =
-        ventaRegistrada
-            ? ventaRegistrada.reduce(
-                (total, venta) =>
-                    total +
-                    (venta.descuento || 0),
-                0
-            )
-            : 0
+        ventasRegistradas.reduce(
+            (total, venta) =>
+                total +
+                (venta.descuento || 0),
+            0
+        )
 
     const totalCompraRegistrada =
-        ventaRegistrada
-            ? ventaRegistrada.reduce(
-                (total, venta) =>
-                    total + venta.total,
-                0
-            )
-            : 0
+        ventasRegistradas.reduce(
+            (total, venta) =>
+                total + venta.total,
+            0
+        )
 
     if (cargando) {
 
@@ -484,6 +499,16 @@ function VentaPage() {
                         Venta registrada correctamente
                     </h2>
 
+                    <p className="venta-confirmacion-cliente">
+                        Pedido #{ventaRegistrada.id}
+                        {' — '}
+                        Cliente:
+                        {' '}
+                        <strong>
+                            {ventaRegistrada.nombreCliente}
+                        </strong>
+                    </p>
+
                     <div className="venta-confirmacion-resumen-general">
 
                         <div>
@@ -528,7 +553,7 @@ function VentaPage() {
 
                     </div>
 
-                    {ventaRegistrada.map(venta => (
+                    {ventasRegistradas.map(venta => (
 
                         <div
                             key={venta.id}
@@ -568,6 +593,7 @@ function VentaPage() {
                                             </strong>
 
                                         </div>
+
                                     )
                                 )}
 
@@ -738,6 +764,7 @@ function VentaPage() {
                                         </div>
 
                                     </div>
+
                                 )
                             )}
 
@@ -1036,6 +1063,25 @@ function VentaPage() {
                                 </strong>
 
                             </div>
+
+                        </div>
+
+                        <div className="nombre-cliente">
+
+                            <label htmlFor="nombreCliente">
+                                Nombre del cliente
+                            </label>
+
+                            <input
+                                id="nombreCliente"
+                                type="text"
+                                value={nombreCliente}
+                                placeholder="Ej. Juan"
+                                maxLength={100}
+                                onChange={(e) =>
+                                    setNombreCliente(e.target.value)
+                                }
+                            />
 
                         </div>
 

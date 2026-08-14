@@ -1000,3 +1000,236 @@
   }
 
 }
+
+.nombre-cliente {
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+
+.nombre-cliente label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.nombre-cliente input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 11px 12px;
+  border: 1px solid #ccc;
+  border-radius: 7px;
+  background: #fff;
+  color: #222;
+  font-size: 15px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.nombre-cliente input:focus {
+  border-color: #888;
+  box-shadow: 0 0 0 2px rgba(100, 100, 100, 0.12);
+}
+
+.nombre-cliente input::placeholder {
+  color: #999;
+}
+
+.ventas-pendientes-page {
+  padding: 25px;
+}
+
+.ventas-pendientes-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+}
+
+.ventas-pendientes-header h1 {
+  margin: 0;
+  color: #cccccc;
+}
+
+.ventas-pendientes-header p {
+  margin-top: 6px;
+  opacity: 0.7;
+  color: #cccccc;
+}
+
+.ventas-pendientes-recargar {
+  padding: 10px 16px;
+  border: none;
+  border-radius: 7px;
+  cursor: pointer;
+}
+
+.ventas-pendientes-grid {
+  display: grid;
+  grid-template-columns: repeat(
+        auto-fill,
+        minmax(320px, 1fr)
+    );
+  gap: 20px;
+  align-items: stretch;
+}
+
+.venta-pendiente-card {
+  padding: 20px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+
+  min-height: 425px;
+  box-sizing: border-box;
+
+  display: flex;
+  flex-direction: column;
+}
+
+.venta-pendiente-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 15px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.venta-pendiente-header h2 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.venta-pendiente-header p {
+  margin: 5px 0 0;
+  opacity: 0.7;
+  color: #222222;
+}
+
+.venta-pendiente-estado {
+  padding: 5px 9px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: bold;
+  background: rgba(255, 180, 0, 0.3);
+}
+
+.venta-pendiente-info {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+  padding: 15px 0;
+}
+
+.venta-pendiente-info div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.venta-pendiente-info span {
+  font-size: 12px;
+  opacity: 0.6;
+}
+
+.venta-pendiente-productos {
+  padding: 15px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.venta-pendiente-productos h3 {
+  margin: 0 0 12px;
+  font-size: 15px;
+}
+
+.venta-pendiente-producto {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+  padding: 8px 0;
+}
+
+.venta-pendiente-producto div {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.venta-pendiente-producto span {
+  font-size: 13px;
+  opacity: 0.65;
+}
+
+.venta-pendiente-resumen {
+  margin-top: 5px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.venta-pendiente-resumen > div {
+  display: flex;
+  justify-content: space-between;
+  padding: 5px 0;
+}
+
+.venta-pendiente-descuento {
+  color: #72d572;
+}
+
+.venta-pendiente-total {
+  margin-top: 6px;
+  padding-top: 10px !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.venta-pendiente-entregar {
+  width: 100%;
+  margin-top: auto;
+  padding: 12px;
+  border: none;
+  border-radius: 7px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.venta-pendiente-entregar:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.ventas-pendientes-vacio {
+  padding: 60px 20px;
+  text-align: center;
+  opacity: 0.8;
+}
+
+.ventas-pendientes-vacio-icono {
+  margin: 0 auto 15px;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-size: 24px;
+}
+
+.ventas-pendientes-vacio h2 {
+  margin: 0 0 8px;
+}
+
+.ventas-pendientes-vacio p {
+  margin: 0;
+  opacity: 0.6;
+}
+
+.ventas-pendientes-error {
+  margin-bottom: 20px;
+  padding: 12px;
+  border-radius: 7px;
+}
