@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { registrarVenta } from '../services/ventaService'
 import { obtenerProductos } from '../services/productoService'
 import { obtenerCategorias } from '../services/categoriaService'
+import { obtenerVendedores } from '../services/vendedorService'
+
 import alitasImg from '../assets/alitas.jpg'
 import costillasImg from '../assets/costillas.jpg'
 import micheladaImg from '../assets/michelada.png'
@@ -12,23 +14,21 @@ import totoposCueImg from '../assets/totoposCuertiso.png'
 import papasLocasImg from '../assets/papasLocas.png'
 import brochetasCamImg from '../assets/brochetasCam.png'
 
-
 function VentaPage() {
 
     const [productos, setProductos] = useState([])
-
     const [carrito, setCarrito] = useState([])
-
     const [metodoPago, setMetodoPago] = useState('')
-
     const [cargando, setCargando] = useState(true)
-
     const [error, setError] = useState('')
-
     const [ventaRegistrada, setVentaRegistrada] = useState(null)
-
     const [categorias, setCategorias] = useState([])
     const [filtroVendedor, setFiltroVendedor] = useState('TODOS')
+    const [vendedoresData, setVendedoresData] = useState([])
+
+    const [tieneDescuento, setTieneDescuento] = useState(false)
+    const [montoDescuento, setMontoDescuento] = useState('')
+    const [vendedorDescuentoId, setVendedorDescuentoId] = useState('')
 
     const imagenesProductos = {
         1: alitasImg,
@@ -52,10 +52,12 @@ function VentaPage() {
 
                 const [
                     productosData,
-                    categoriasData
+                    categoriasData,
+                    vendedoresData
                 ] = await Promise.all([
                     obtenerProductos(),
-                    obtenerCategorias()
+                    obtenerCategorias(),
+                    obtenerVendedores()
                 ])
 
                 if (cancelado) {
@@ -63,8 +65,8 @@ function VentaPage() {
                 }
 
                 setProductos(productosData)
-
                 setCategorias(categoriasData)
+                setVendedoresData(vendedoresData)
 
             } catch (error) {
 
@@ -73,7 +75,6 @@ function VentaPage() {
                 }
 
                 console.error(error)
-
                 setError(error.message)
 
             } finally {
@@ -100,6 +101,114 @@ function VentaPage() {
         )
     ]
 
+    const vendedoresEnCarrito = [
+        ...new Map(
+            carrito
+                .map(producto => {
+
+                    const categoria = categorias.find(
+                        categoria =>
+                            categoria.id === producto.categoriaId
+                    )
+
+                    if (!categoria?.vendedor) {
+                        return null
+                    }
+
+                    const vendedor = vendedoresData.find(
+                        vendedor =>
+                            vendedor.nombre === categoria.vendedor
+                    )
+
+                    if (!vendedor) {
+                        return null
+                    }
+
+                    return [vendedor.id, vendedor]
+                })
+                .filter(Boolean)
+        ).values()
+    ]
+
+    useEffect(() => {
+
+        if (!tieneDescuento) {
+            return
+        }
+
+        if (vendedoresEnCarrito.length === 1) {
+
+            setVendedorDescuentoId(
+                String(vendedoresEnCarrito[0].id)
+            )
+
+            return
+        }
+
+        if (vendedoresEnCarrito.length > 1) {
+
+            const vendedorExiste =
+                vendedoresEnCarrito.some(
+                    vendedor =>
+                        String(vendedor.id) ===
+                        String(vendedorDescuentoId)
+                )
+
+            if (!vendedorExiste) {
+                setVendedorDescuentoId('')
+            }
+        }
+
+        if (vendedoresEnCarrito.length === 0) {
+            setVendedorDescuentoId('')
+        }
+
+    }, [
+        carrito,
+        vendedoresData,
+        categorias,
+        tieneDescuento
+    ])
+
+    const subtotalPorVendedor = vendedoresEnCarrito.reduce(
+        (resultado, vendedor) => {
+
+            const subtotal = carrito.reduce(
+                (total, producto) => {
+
+                    const categoria = categorias.find(
+                        categoria =>
+                            categoria.id === producto.categoriaId
+                    )
+
+                    const vendedorProducto =
+                        vendedoresData.find(
+                            vendedorData =>
+                                vendedorData.nombre ===
+                                categoria?.vendedor
+                        )
+
+                    if (
+                        vendedorProducto?.id !==
+                        vendedor.id
+                    ) {
+                        return total
+                    }
+
+                    return total +
+                        producto.precio *
+                        producto.cantidad
+                },
+                0
+            )
+
+            resultado[vendedor.id] = subtotal
+
+            return resultado
+        },
+        {}
+    )
+
     const productosDisponibles = productos.filter(
         producto => {
 
@@ -111,11 +220,10 @@ function VentaPage() {
                 return true
             }
 
-            const categoria =
-                categorias.find(
-                    categoria =>
-                        categoria.id === producto.categoriaId
-                )
+            const categoria = categorias.find(
+                categoria =>
+                    categoria.id === producto.categoriaId
+            )
 
             return categoria?.vendedor === filtroVendedor
         }
@@ -128,29 +236,25 @@ function VentaPage() {
                 item => item.id === producto.id
             )
 
-
         if (productoExistente) {
 
-            const carritoActualizado =
+            setCarrito(
                 carrito.map(item => {
 
                     if (item.id === producto.id) {
 
                         return {
                             ...item,
-                            cantidad:
-                                item.cantidad + 1
+                            cantidad: item.cantidad + 1
                         }
                     }
 
                     return item
                 })
-
-            setCarrito(carritoActualizado)
+            )
 
             return
         }
-
 
         setCarrito([
             ...carrito,
@@ -161,10 +265,9 @@ function VentaPage() {
         ])
     }
 
-
     const disminuirCantidad = (productoId) => {
 
-        const carritoActualizado =
+        setCarrito(
             carrito
                 .map(item => {
 
@@ -172,8 +275,7 @@ function VentaPage() {
 
                         return {
                             ...item,
-                            cantidad:
-                                item.cantidad - 1
+                            cantidad: item.cantidad - 1
                         }
                     }
 
@@ -182,21 +284,17 @@ function VentaPage() {
                 .filter(
                     item => item.cantidad > 0
                 )
-
-        setCarrito(carritoActualizado)
+        )
     }
-
 
     const eliminarProducto = (productoId) => {
 
-        const carritoActualizado =
+        setCarrito(
             carrito.filter(
                 item => item.id !== productoId
             )
-
-        setCarrito(carritoActualizado)
+        )
     }
-
 
     const calcularSubtotal = () => {
 
@@ -209,69 +307,93 @@ function VentaPage() {
         )
     }
 
-
     const subtotal = calcularSubtotal()
 
-    const descuento = 0
+    const descuento =
+        tieneDescuento
+            ? Number(montoDescuento) || 0
+            : 0
 
     const total = subtotal - descuento
-
 
     const manejarRegistroVenta = async () => {
 
         if (carrito.length === 0) {
-
             alert(
                 'Debes agregar al menos un producto'
             )
-
             return
         }
 
-
         if (!metodoPago) {
-
             alert(
                 'Debes seleccionar un método de pago'
             )
-
             return
         }
 
+        if (tieneDescuento) {
+
+            if (
+                !montoDescuento ||
+                Number(montoDescuento) <= 0
+            ) {
+                alert(
+                    'Debes ingresar un monto de descuento'
+                )
+                return
+            }
+
+            if (!vendedorDescuentoId) {
+                alert(
+                    'Debes seleccionar el vendedor que otorgó el descuento'
+                )
+                return
+            }
+
+            const subtotalVendedor =
+                subtotalPorVendedor[
+                    vendedorDescuentoId
+                    ] || 0
+
+            if (
+                Number(montoDescuento) >
+                subtotalVendedor
+            ) {
+                alert(
+                    'El descuento no puede ser mayor al subtotal del vendedor seleccionado'
+                )
+                return
+            }
+        }
 
         const venta = {
-
-            metodoPago: metodoPago,
-
+            metodoPago,
+            descuento: tieneDescuento
+                ? Number(montoDescuento)
+                : 0,
+            vendedorDescuentoId: tieneDescuento
+                ? Number(vendedorDescuentoId)
+                : null,
             productos: carrito.map(
                 producto => ({
-
                     productoId: producto.id,
-
                     cantidad: producto.cantidad
                 })
             )
         }
-
 
         try {
 
             const respuestas =
                 await registrarVenta(venta)
 
-
-            console.log(
-                'Venta registrada correctamente'
-            )
-
-            console.log(respuestas)
-
-
             setVentaRegistrada(respuestas)
-
             setCarrito([])
-
             setMetodoPago('')
+            setTieneDescuento(false)
+            setMontoDescuento('')
+            setVendedorDescuentoId('')
 
         } catch (error) {
 
@@ -284,6 +406,24 @@ function VentaPage() {
         }
     }
 
+    const subtotalCompraRegistrada =
+        ventaRegistrada
+            ? ventaRegistrada.reduce(
+                (total, venta) =>
+                    total + venta.subtotal,
+                0
+            )
+            : 0
+
+    const descuentoCompraRegistrada =
+        ventaRegistrada
+            ? ventaRegistrada.reduce(
+                (total, venta) =>
+                    total +
+                    (venta.descuento || 0),
+                0
+            )
+            : 0
 
     const totalCompraRegistrada =
         ventaRegistrada
@@ -294,11 +434,9 @@ function VentaPage() {
             )
             : 0
 
-
     if (cargando) {
 
         return (
-
             <section className="venta-page">
 
                 <h1>
@@ -313,11 +451,9 @@ function VentaPage() {
         )
     }
 
-
     if (error) {
 
         return (
-
             <section className="venta-page">
 
                 <h1>
@@ -332,7 +468,6 @@ function VentaPage() {
         )
     }
 
-
     return (
 
         <section className="venta-page">
@@ -340,7 +475,6 @@ function VentaPage() {
             <h1>
                 Registrar venta
             </h1>
-
 
             {ventaRegistrada && (
 
@@ -350,70 +484,126 @@ function VentaPage() {
                         Venta registrada correctamente
                     </h2>
 
+                    <div className="venta-confirmacion-resumen-general">
 
-                    <div className="venta-confirmacion-total">
+                        <div>
 
-                        <span>
-                            Total de la compra
-                        </span>
+                            <span>
+                                Subtotal de la compra
+                            </span>
 
-                        <strong>
-                            ${totalCompraRegistrada}
-                        </strong>
+                            <strong>
+                                ${subtotalCompraRegistrada}
+                            </strong>
+
+                        </div>
+
+                        {descuentoCompraRegistrada > 0 && (
+
+                            <div className="venta-confirmacion-descuento-general">
+
+                                <span>
+                                    Descuento
+                                </span>
+
+                                <strong>
+                                    -${descuentoCompraRegistrada}
+                                </strong>
+
+                            </div>
+
+                        )}
+
+                        <div className="venta-confirmacion-total-general">
+
+                            <span>
+                                Total de la compra
+                            </span>
+
+                            <strong>
+                                ${totalCompraRegistrada}
+                            </strong>
+
+                        </div>
 
                     </div>
 
+                    {ventaRegistrada.map(venta => (
 
-                    {ventaRegistrada.map(
-                        venta => (
+                        <div
+                            key={venta.id}
+                            className="venta-confirmacion-vendedor"
+                        >
 
-                            <div
-                                key={venta.id}
-                                className="venta-confirmacion-vendedor"
-                            >
+                            <h3>
+                                {venta.vendedor}
+                            </h3>
 
-                                <h3>
-                                    {venta.vendedor}
-                                </h3>
+                            <p>
+                                Venta #{venta.id}
+                            </p>
 
-                                <p>
-                                    Venta #{venta.id}
-                                </p>
+                            <div className="venta-confirmacion-productos">
 
+                                {venta.productos.map(
+                                    (producto, index) => (
 
-                                <div className="venta-confirmacion-productos">
+                                        <div
+                                            key={index}
+                                            className="venta-confirmacion-producto"
+                                        >
 
-                                    {venta.productos.map(
-                                        (producto, index) => (
+                                            <span>
+                                                {producto.producto}
+                                            </span>
 
-                                            <div
-                                                key={index}
-                                                className="venta-confirmacion-producto"
-                                            >
+                                            <span>
+                                                {producto.cantidad}
+                                                {' x $'}
+                                                {producto.precioUnitario}
+                                            </span>
 
-                                                <span>
-                                                    {producto.producto}
-                                                </span>
+                                            <strong>
+                                                ${producto.subtotal}
+                                            </strong>
 
-                                                <span>
-                                                    {producto.cantidad}
-                                                    {' x $'}
-                                                    {producto.precioUnitario}
-                                                </span>
+                                        </div>
+                                    )
+                                )}
 
-                                                <strong>
-                                                    ${producto.subtotal}
-                                                </strong>
+                            </div>
 
-                                            </div>
+                            <div className="venta-confirmacion-resumen">
 
-                                        )
-                                    )}
+                                <div>
+
+                                    <span>
+                                        Subtotal
+                                    </span>
+
+                                    <strong>
+                                        ${venta.subtotal}
+                                    </strong>
 
                                 </div>
 
+                                {venta.descuento > 0 && (
 
-                                <div className="venta-confirmacion-subtotal">
+                                    <div className="venta-confirmacion-descuento">
+
+                                        <span>
+                                            Descuento
+                                        </span>
+
+                                        <strong>
+                                            -${venta.descuento}
+                                        </strong>
+
+                                    </div>
+
+                                )}
+
+                                <div className="venta-confirmacion-total">
 
                                     <span>
                                         Total {venta.vendedor}
@@ -427,16 +617,15 @@ function VentaPage() {
 
                             </div>
 
-                        )
-                    )}
+                            <p>
+                                Método de pago:
+                                {' '}
+                                {venta.metodoPago}
+                            </p>
 
+                        </div>
 
-                    <p>
-                        Método de pago:
-                        {' '}
-                        {ventaRegistrada[0]?.metodoPago}
-                    </p>
-
+                    ))}
 
                     <button
                         type="button"
@@ -450,7 +639,6 @@ function VentaPage() {
 
                 </div>
             )}
-
 
             {!ventaRegistrada && (
 
@@ -478,7 +666,6 @@ function VentaPage() {
                                 Todos
                             </button>
 
-
                             {vendedores.map(vendedor => (
 
                                 <button
@@ -502,92 +689,40 @@ function VentaPage() {
 
                         <div className="productos-grid">
 
-                            {productosDisponibles.map(producto => (
-
-                                <div className="producto-card" key={producto.id}>
-
-                                    {imagenesProductos[producto.id] && (
-                                        <img
-                                            src={imagenesProductos[producto.id]}
-                                            alt={producto.nombre}
-                                        />
-                                    )}
-
-                                    <div className="producto-card-contenido">
-
-                                        <h3>{producto.nombre}</h3>
-
-                                        <strong>${producto.precio}</strong>
-
-                                        <button onClick={() => agregarAlCarrito(producto)}>
-                                            Agregar
-                                        </button>
-
-                                    </div>
-
-                                </div>
-
-                            ))}
-
-                        </div>
-
-                    </div>
-
-
-                    <div className="venta-carrito">
-
-                        <h2>
-                            Venta actual
-                        </h2>
-
-
-                        {carrito.length === 0 ? (
-
-                            <p>
-                                No hay productos agregados.
-                            </p>
-
-                        ) : (
-
-                            carrito.map(
+                            {productosDisponibles.map(
                                 producto => (
 
                                     <div
+                                        className="producto-card"
                                         key={producto.id}
-                                        className="carrito-item"
                                     >
 
-                                        <div>
+                                        {imagenesProductos[
+                                            producto.id
+                                            ] && (
+
+                                            <img
+                                                src={
+                                                    imagenesProductos[
+                                                        producto.id
+                                                        ]
+                                                }
+                                                alt={
+                                                    producto.nombre
+                                                }
+                                            />
+
+                                        )}
+
+                                        <div className="producto-card-contenido">
+
+                                            <h3>
+                                                {producto.nombre}
+                                            </h3>
 
                                             <strong>
-                                                {producto.nombre}
+                                                ${producto.precio}
                                             </strong>
-
-                                            <small>
-                                                ${producto.precio} c/u
-                                            </small>
-
-                                        </div>
-
-
-                                        <div className="carrito-cantidad">
-
-                                            <button
-                                                type="button"
-                                                onClick={() =>
-                                                    disminuirCantidad(
-                                                        producto.id
-                                                    )
-                                                }
-                                            >
-                                                -
-                                            </button>
-
-
-                                            <span>
-                                                {producto.cantidad}
-                                            </span>
-
 
                                             <button
                                                 type="button"
@@ -597,36 +732,272 @@ function VentaPage() {
                                                     )
                                                 }
                                             >
-                                                +
+                                                Agregar
                                             </button>
 
                                         </div>
 
+                                    </div>
+                                )
+                            )}
+
+                        </div>
+
+                    </div>
+
+                    <div className="venta-carrito">
+
+                        <h2>
+                            Venta actual
+                        </h2>
+
+                        {carrito.length === 0 ? (
+
+                            <p>
+                                No hay productos agregados.
+                            </p>
+
+                        ) : (
+
+                            carrito.map(producto => (
+
+                                <div
+                                    key={producto.id}
+                                    className="carrito-item"
+                                >
+
+                                    <div>
 
                                         <strong>
-                                            $
-                                            {producto.precio *
-                                                producto.cantidad}
+                                            {producto.nombre}
                                         </strong>
 
+                                        <small>
+                                            ${producto.precio} c/u
+                                        </small>
+
+                                    </div>
+
+                                    <div className="carrito-cantidad">
 
                                         <button
                                             type="button"
                                             onClick={() =>
-                                                eliminarProducto(
+                                                disminuirCantidad(
                                                     producto.id
                                                 )
                                             }
                                         >
-                                            🗑️
+                                            -
+                                        </button>
+
+                                        <span>
+                                            {producto.cantidad}
+                                        </span>
+
+                                        <button
+                                            type="button"
+                                            onClick={() =>
+                                                agregarAlCarrito(
+                                                    producto
+                                                )
+                                            }
+                                        >
+                                            +
                                         </button>
 
                                     </div>
 
-                                )
-                            )
+                                    <strong>
+                                        $
+                                        {producto.precio *
+                                            producto.cantidad}
+                                    </strong>
+
+                                    <button
+                                        type="button"
+                                        onClick={() =>
+                                            eliminarProducto(
+                                                producto.id
+                                            )
+                                        }
+                                    >
+                                        🗑️
+                                    </button>
+
+                                </div>
+
+                            ))
                         )}
 
+                        <div className="descuento-section">
+
+                            <div className="descuento-header">
+
+                                <div>
+
+                                    <h3>
+                                        Descuento
+                                    </h3>
+
+                                    <p>
+                                        Aplica un descuento a la venta
+                                    </p>
+
+                                </div>
+
+                                <label className="descuento-toggle">
+
+                                    <input
+                                        type="checkbox"
+                                        checked={tieneDescuento}
+                                        onChange={(e) => {
+
+                                            const activo =
+                                                e.target.checked
+
+                                            setTieneDescuento(
+                                                activo
+                                            )
+
+                                            if (!activo) {
+
+                                                setMontoDescuento('')
+                                                setVendedorDescuentoId('')
+
+                                                return
+                                            }
+
+                                            if (
+                                                vendedoresEnCarrito.length === 1
+                                            ) {
+
+                                                setVendedorDescuentoId(
+                                                    String(
+                                                        vendedoresEnCarrito[0].id
+                                                    )
+                                                )
+
+                                            } else {
+
+                                                setVendedorDescuentoId('')
+                                            }
+                                        }}
+                                    />
+
+                                    <span className="descuento-toggle-slider"></span>
+
+                                </label>
+
+                            </div>
+
+                            {tieneDescuento && (
+
+                                <div className="descuento-form">
+
+                                    <div className="descuento-campo">
+
+                                        <label htmlFor="montoDescuento">
+                                            Monto
+                                        </label>
+
+                                        <div className="descuento-monto">
+
+                                            <span>
+                                                $
+                                            </span>
+
+                                            <input
+                                                id="montoDescuento"
+                                                type="number"
+                                                min="1"
+                                                value={montoDescuento}
+                                                placeholder="0"
+                                                onChange={(e) =>
+                                                    setMontoDescuento(
+                                                        e.target.value
+                                                    )
+                                                }
+                                            />
+
+                                        </div>
+
+                                    </div>
+
+                                    <div className="descuento-campo">
+
+                                        <label htmlFor="vendedorDescuento">
+                                            Otorgado por
+                                        </label>
+
+                                        <select
+                                            id="vendedorDescuento"
+                                            value={vendedorDescuentoId}
+                                            onChange={(e) =>
+                                                setVendedorDescuentoId(
+                                                    e.target.value
+                                                )
+                                            }
+                                            disabled={
+                                                vendedoresEnCarrito.length === 1
+                                            }
+                                        >
+
+                                            {vendedoresEnCarrito.length === 1 ? (
+
+                                                <option
+                                                    value={
+                                                        vendedoresEnCarrito[0].id
+                                                    }
+                                                >
+                                                    {
+                                                        vendedoresEnCarrito[0]
+                                                            .nombre
+                                                    }
+                                                </option>
+
+                                            ) : (
+
+                                                <>
+                                                    <option value="">
+                                                        Selecciona vendedor
+                                                    </option>
+
+                                                    {vendedoresEnCarrito.map(
+                                                        vendedor => (
+
+                                                            <option
+                                                                key={
+                                                                    vendedor.id
+                                                                }
+                                                                value={
+                                                                    vendedor.id
+                                                                }
+                                                            >
+                                                                {
+                                                                    vendedor.nombre
+                                                                }
+                                                                {' — $'}
+                                                                {
+                                                                    subtotalPorVendedor[
+                                                                        vendedor.id
+                                                                        ] || 0
+                                                                }
+                                                            </option>
+
+                                                        )
+                                                    )}
+                                                </>
+                                            )}
+
+                                        </select>
+
+                                    </div>
+
+                                </div>
+                            )}
+
+                        </div>
 
                         <div className="venta-totales">
 
@@ -642,7 +1013,6 @@ function VentaPage() {
 
                             </div>
 
-
                             <div>
 
                                 <span>
@@ -654,7 +1024,6 @@ function VentaPage() {
                                 </strong>
 
                             </div>
-
 
                             <div className="venta-total">
 
@@ -670,13 +1039,11 @@ function VentaPage() {
 
                         </div>
 
-
                         <div className="metodo-pago">
 
                             <h3>
                                 Método de pago
                             </h3>
-
 
                             <button
                                 type="button"
@@ -686,14 +1053,11 @@ function VentaPage() {
                                         : ''
                                 }
                                 onClick={() =>
-                                    setMetodoPago(
-                                        'EFECTIVO'
-                                    )
+                                    setMetodoPago('EFECTIVO')
                                 }
                             >
                                 Efectivo
                             </button>
-
 
                             <button
                                 type="button"
@@ -703,14 +1067,11 @@ function VentaPage() {
                                         : ''
                                 }
                                 onClick={() =>
-                                    setMetodoPago(
-                                        'TARJETA'
-                                    )
+                                    setMetodoPago('TARJETA')
                                 }
                             >
                                 Tarjeta
                             </button>
-
 
                             <button
                                 type="button"
@@ -720,9 +1081,7 @@ function VentaPage() {
                                         : ''
                                 }
                                 onClick={() =>
-                                    setMetodoPago(
-                                        'TRANSFERENCIA'
-                                    )
+                                    setMetodoPago('TRANSFERENCIA')
                                 }
                             >
                                 Transferencia
@@ -730,13 +1089,10 @@ function VentaPage() {
 
                         </div>
 
-
                         <button
                             type="button"
                             className="registrar-venta-button"
-                            onClick={
-                                manejarRegistroVenta
-                            }
+                            onClick={manejarRegistroVenta}
                         >
                             Registrar venta
                         </button>

@@ -17,7 +17,6 @@ export const obtenerProductos = async () => {
     return data
 }
 
-
 export const crearProducto = async (producto) => {
 
     const response = await apiFetch(
@@ -38,7 +37,6 @@ export const crearProducto = async (producto) => {
 
     return data
 }
-
 
 export const actualizarProducto = async (id, producto) => {
 
@@ -61,7 +59,6 @@ export const actualizarProducto = async (id, producto) => {
     return data
 }
 
-
 export const obtenerProducto = async (id) => {
 
     const response = await apiFetch(
@@ -78,7 +75,6 @@ export const obtenerProducto = async (id) => {
 
     return data
 }
-
 
 export const eliminarProducto = async (id) => {
 

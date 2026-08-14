@@ -431,6 +431,36 @@
   color: #e0e0e0;
 }
 
+.venta-confirmacion-resumen-general > div {
+  display: flex;
+  justify-content: space-between;
+  margin: 8px 0;
+}
+
+.venta-confirmacion-descuento-general {
+  color: #72d572;
+}
+
+.venta-confirmacion-total-general {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 2px solid #ddd;
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.venta-confirmacion-resumen > div {
+  display: flex;
+  justify-content: space-between;
+  margin: 8px 0;
+}
+
+.venta-confirmacion-descuento {
+  color: #72d572;
+}
+
 .nueva-venta-button {
   width: 100%;
 
@@ -451,7 +481,7 @@
 }
 
 .nueva-venta-button:hover {
-  background-color: #444;
+  background-color: #333333;
 }
 
 .productos-page {
@@ -823,3 +853,150 @@
   border-color: #222 !important;
 }
 
+.descuento-section {
+  margin-top: 20px;
+  padding: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.15);
+}
+
+.descuento-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+}
+
+.descuento-header h3 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.descuento-header p {
+  margin: 4px 0 0;
+  font-size: 13px;
+  opacity: 0.65;
+}
+
+.descuento-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.descuento-campo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.descuento-campo label {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.descuento-monto {
+  display: flex;
+  align-items: center;
+  height: 40px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+.descuento-monto span {
+  padding: 0 10px;
+  font-weight: 600;
+  opacity: 0.7;
+}
+
+.descuento-monto input {
+  width: 100%;
+  height: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: white;
+  font-size: 15px;
+}
+
+.descuento-monto input::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.descuento-campo select {
+  height: 40px;
+  padding: 0 10px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.08);
+  color: white;
+  outline: none;
+  cursor: pointer;
+}
+
+.descuento-campo select option {
+  background: #333;
+  color: white;
+}
+
+
+/* =========================
+   SWITCH DESCUENTO
+   ========================= */
+
+.descuento-toggle {
+  position: relative;
+  width: 42px;
+  height: 23px;
+  display: block;
+  flex-shrink: 0;
+}
+
+.descuento-toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.descuento-toggle-slider {
+  position: absolute;
+  inset: 0;
+  cursor: pointer;
+  border-radius: 20px;
+  background: #777;
+  transition: 0.2s;
+}
+
+.descuento-toggle-slider::before {
+  content: "";
+  position: absolute;
+  width: 17px;
+  height: 17px;
+  left: 3px;
+  top: 3px;
+  border-radius: 50%;
+  background: white;
+  transition: 0.2s;
+}
+
+.descuento-toggle input:checked + .descuento-toggle-slider {
+  background: #4caf50;
+}
+
+.descuento-toggle input:checked + .descuento-toggle-slider::before {
+  transform: translateX(19px);
+}
+
+@media (max-width: 600px) {
+
+  .descuento-form {
+    grid-template-columns: 1fr;
+  }
+
+}
