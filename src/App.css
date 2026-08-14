@@ -487,6 +487,7 @@
 .productos-page {
   max-width: 1100px;
   margin: 0 auto;
+  color: #e0e0e0;
 }
 
 .productos-header {
@@ -1037,6 +1038,7 @@
 
 .ventas-pendientes-page {
   padding: 25px;
+  color: #cccccc;
 }
 
 .ventas-pendientes-header {
@@ -1066,12 +1068,9 @@
 
 .ventas-pendientes-grid {
   display: grid;
-  grid-template-columns: repeat(
-        auto-fill,
-        minmax(320px, 1fr)
-    );
+  grid-template-columns: repeat(auto-fill, 280px);
   gap: 20px;
-  align-items: stretch;
+  align-items: start;
 }
 
 .venta-pendiente-card {
@@ -1080,7 +1079,7 @@
   background: rgba(255, 255, 255, 0.3);
   border: 1px solid rgba(255, 255, 255, 0.12);
 
-  min-height: 425px;
+  min-height: 450px;
   box-sizing: border-box;
 
   display: flex;
@@ -1206,6 +1205,7 @@
   padding: 60px 20px;
   text-align: center;
   opacity: 0.8;
+  color: #e0e0e0;
 }
 
 .ventas-pendientes-vacio-icono {
@@ -1232,4 +1232,5 @@
   margin-bottom: 20px;
   padding: 12px;
   border-radius: 7px;
+  color: #a52828;
 }
