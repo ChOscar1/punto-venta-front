@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import {
     obtenerPedidosPendientes,
-    entregarPedido
+    entregarPedido,
+    cancelarPedido
 } from '../services/ventaService'
 
 function PedidosPendientesPage() {
@@ -10,6 +11,7 @@ function PedidosPendientesPage() {
     const [cargando, setCargando] = useState(true)
     const [error, setError] = useState('')
     const [entregando, setEntregando] = useState(null)
+    const [cancelando, setCancelando] = useState(null)
 
     const cargarPedidos = async () => {
 
@@ -65,6 +67,41 @@ function PedidosPendientesPage() {
         } finally {
 
             setEntregando(null)
+        }
+    }
+
+    const manejarCancelar = async (id) => {
+
+        const confirmar = window.confirm(
+            '¿Estás seguro de que deseas cancelar este pedido?'
+        )
+
+        if (!confirmar) {
+            return
+        }
+
+        try {
+
+            setCancelando(id)
+            setError('')
+
+            await cancelarPedido(id)
+
+            setPedidos(
+                pedidos.filter(
+                    pedido => pedido.id !== id
+                )
+            )
+
+        } catch (error) {
+
+            console.error(error)
+
+            setError(error.message)
+
+        } finally {
+
+            setCancelando(null)
         }
     }
 
@@ -291,24 +328,47 @@ function PedidosPendientesPage() {
 
                             </div>
 
+                            <div className="venta-pendiente-acciones">
 
-                            <button
-                                type="button"
-                                className="venta-pendiente-entregar"
-                                disabled={
-                                    entregando === pedido.id
-                                }
-                                onClick={() =>
-                                    manejarEntregar(pedido.id)
-                                }
-                            >
+                                <button
+                                    type="button"
+                                    className="venta-pendiente-entregar"
+                                    disabled={
+                                        entregando === pedido.id ||
+                                        cancelando === pedido.id
+                                    }
+                                    onClick={() =>
+                                        manejarEntregar(pedido.id)
+                                    }
+                                >
 
-                                {entregando === pedido.id
-                                    ? 'Marcando como entregado...'
-                                    : '✓ Marcar pedido como entregado'
-                                }
+                                    {entregando === pedido.id
+                                        ? 'Marcando como entregado...'
+                                        : '✓ Marcar como entregado'
+                                    }
 
-                            </button>
+                                </button>
+
+                                <button
+                                    type="button"
+                                    className="venta-pendiente-cancelar"
+                                    disabled={
+                                        entregando === pedido.id ||
+                                        cancelando === pedido.id
+                                    }
+                                    onClick={() =>
+                                        manejarCancelar(pedido.id)
+                                    }
+                                >
+
+                                    {cancelando === pedido.id
+                                        ? 'Cancelando...'
+                                        : '✕ Cancelar pedido'
+                                    }
+
+                                </button>
+
+                            </div>
 
                         </div>
 

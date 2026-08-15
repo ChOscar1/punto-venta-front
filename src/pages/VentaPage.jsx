@@ -13,6 +13,8 @@ import totoposCamImg from '../assets/totoposCamaron.png'
 import totoposCueImg from '../assets/totoposCuertiso.png'
 import papasLocasImg from '../assets/papasLocas.png'
 import brochetasCamImg from '../assets/brochetasCam.png'
+import codilloImg from '../assets/codilloImg.png'
+import alitasPromo from '../assets/alitasPromoImg.png'
 
 function VentaPage() {
 
@@ -26,9 +28,9 @@ function VentaPage() {
     const [filtroVendedor, setFiltroVendedor] = useState('TODOS')
     const [vendedoresData, setVendedoresData] = useState([])
 
+    // NUEVO: ahora tenemos varios descuentos
     const [tieneDescuento, setTieneDescuento] = useState(false)
-    const [montoDescuento, setMontoDescuento] = useState('')
-    const [vendedorDescuentoId, setVendedorDescuentoId] = useState('')
+    const [descuentos, setDescuentos] = useState([])
 
     const [nombreCliente, setNombreCliente] = useState('')
 
@@ -41,7 +43,9 @@ function VentaPage() {
         6: totoposCamImg,
         7: totoposCueImg,
         8: papasLocasImg,
-        10: brochetasCamImg
+        10: brochetasCamImg,
+        90011: codilloImg,
+        90012: alitasPromo
     }
 
     useEffect(() => {
@@ -103,6 +107,10 @@ function VentaPage() {
         )
     ]
 
+    /*
+     * Vendedores que realmente tienen productos
+     * dentro del carrito.
+     */
     const vendedoresEnCarrito = [
         ...new Map(
             carrito
@@ -133,46 +141,10 @@ function VentaPage() {
         ).values()
     ]
 
-    useEffect(() => {
-
-        if (!tieneDescuento) {
-            return
-        }
-
-        if (vendedoresEnCarrito.length === 1) {
-
-            setVendedorDescuentoId(
-                String(vendedoresEnCarrito[0].id)
-            )
-
-            return
-        }
-
-        if (vendedoresEnCarrito.length > 1) {
-
-            const vendedorExiste =
-                vendedoresEnCarrito.some(
-                    vendedor =>
-                        String(vendedor.id) ===
-                        String(vendedorDescuentoId)
-                )
-
-            if (!vendedorExiste) {
-                setVendedorDescuentoId('')
-            }
-        }
-
-        if (vendedoresEnCarrito.length === 0) {
-            setVendedorDescuentoId('')
-        }
-
-    }, [
-        carrito,
-        vendedoresData,
-        categorias,
-        tieneDescuento
-    ])
-
+    /*
+     * Calculamos cuánto corresponde a cada vendedor
+     * dentro del carrito.
+     */
     const subtotalPorVendedor = vendedoresEnCarrito.reduce(
         (resultado, vendedor) => {
 
@@ -313,84 +285,168 @@ function VentaPage() {
 
     const subtotal = calcularSubtotal()
 
-    const descuento =
-        tieneDescuento
-            ? Number(montoDescuento) || 0
-            : 0
+    /*
+     * NUEVO:
+     * Obtiene el descuento de un vendedor específico.
+     */
+    const obtenerDescuentoVendedor = (vendedorId) => {
 
-    const total = subtotal - descuento
+        const descuento = descuentos.find(
+            item =>
+                item.vendedorId === vendedorId
+        )
+
+        return descuento
+            ? descuento.descuento
+            : ''
+    }
+
+    /*
+     * NUEVO:
+     * Actualiza únicamente el descuento del vendedor
+     * indicado.
+     */
+    const actualizarDescuento = (
+        vendedorId,
+        cantidad
+    ) => {
+
+        const valor = Number(cantidad)
+
+        setDescuentos(prev => {
+
+            /*
+             * Quitamos el descuento anterior
+             * de este vendedor.
+             */
+            const actualizados = prev.filter(
+                item =>
+                    item.vendedorId !== vendedorId
+            )
+
+            /*
+             * Si está vacío o es 0,
+             * simplemente no agregamos descuento.
+             */
+            if (!valor || valor <= 0) {
+                return actualizados
+            }
+
+            /*
+             * Agregamos el nuevo descuento.
+             */
+            return [
+                ...actualizados,
+                {
+                    vendedorId: vendedorId,
+                    descuento: valor
+                }
+            ]
+        })
+    }
+
+    /*
+     * Suma todos los descuentos.
+     *
+     * Ejemplo:
+     *
+     * Haydee  $10
+     * Jenifer  $20
+     *
+     * descuentoTotal = $30
+     */
+    const descuentoTotal = descuentos.reduce(
+        (total, item) =>
+            total +
+            Number(item.descuento || 0),
+        0
+    )
+
+    const total = subtotal - descuentoTotal
 
     const manejarRegistroVenta = async () => {
 
         if (carrito.length === 0) {
+
             alert(
                 'Debes agregar al menos un producto'
             )
+
             return
         }
 
         if (!nombreCliente.trim()) {
-            alert('Debes ingresar el nombre del cliente')
+
+            alert(
+                'Debes ingresar el nombre del cliente'
+            )
+
             return
         }
 
         if (!metodoPago) {
+
             alert(
                 'Debes seleccionar un método de pago'
             )
+
             return
         }
 
-        if (tieneDescuento) {
-
-            if (
-                !montoDescuento ||
-                Number(montoDescuento) <= 0
-            ) {
-                alert(
-                    'Debes ingresar un monto de descuento'
-                )
-                return
-            }
-
-            if (!vendedorDescuentoId) {
-                alert(
-                    'Debes seleccionar el vendedor que otorgó el descuento'
-                )
-                return
-            }
+        /*
+         * Validamos cada descuento contra
+         * el subtotal de SU vendedor.
+         */
+        for (const descuento of descuentos) {
 
             const subtotalVendedor =
                 subtotalPorVendedor[
-                    vendedorDescuentoId
+                    descuento.vendedorId
                     ] || 0
 
             if (
-                Number(montoDescuento) >
+                descuento.descuento >
                 subtotalVendedor
             ) {
+
+                const vendedor =
+                    vendedoresData.find(
+                        vendedor =>
+                            vendedor.id ===
+                            descuento.vendedorId
+                    )
+
                 alert(
-                    'El descuento no puede ser mayor al subtotal del vendedor seleccionado'
+                    `El descuento de ${vendedor?.nombre || 'vendedor'} no puede ser mayor a $${subtotalVendedor}`
                 )
+
                 return
             }
         }
 
         const venta = {
-            nombreCliente: nombreCliente.trim(),
+
+            nombreCliente:
+                nombreCliente.trim(),
+
             metodoPago,
-            descuento: tieneDescuento
-                ? Number(montoDescuento)
-                : 0,
-            vendedorDescuentoId: tieneDescuento
-                ? Number(vendedorDescuentoId)
-                : null,
-            productos: carrito.map(
-                producto => ({
-                    productoId: producto.id,
-                    cantidad: producto.cantidad
-                })
-            )
+
+            /*
+             * NUEVO
+             */
+            descuentos: tieneDescuento
+                ? descuentos
+                : [],
+
+            productos:
+                carrito.map(
+                    producto => ({
+                        productoId:
+                        producto.id,
+                        cantidad:
+                        producto.cantidad
+                    })
+                )
         }
 
         try {
@@ -399,12 +455,16 @@ function VentaPage() {
                 await registrarVenta(venta)
 
             setVentaRegistrada(respuesta)
+
             setCarrito([])
+
             setNombreCliente('')
+
             setMetodoPago('')
+
             setTieneDescuento(false)
-            setMontoDescuento('')
-            setVendedorDescuentoId('')
+
+            setDescuentos([])
 
         } catch (error) {
 
@@ -853,7 +913,6 @@ function VentaPage() {
                                     </button>
 
                                 </div>
-
                             ))
                         )}
 
@@ -868,7 +927,7 @@ function VentaPage() {
                                     </h3>
 
                                     <p>
-                                        Aplica un descuento a la venta
+                                        Aplica descuentos por vendedor
                                     </p>
 
                                 </div>
@@ -888,26 +947,7 @@ function VentaPage() {
                                             )
 
                                             if (!activo) {
-
-                                                setMontoDescuento('')
-                                                setVendedorDescuentoId('')
-
-                                                return
-                                            }
-
-                                            if (
-                                                vendedoresEnCarrito.length === 1
-                                            ) {
-
-                                                setVendedorDescuentoId(
-                                                    String(
-                                                        vendedoresEnCarrito[0].id
-                                                    )
-                                                )
-
-                                            } else {
-
-                                                setVendedorDescuentoId('')
+                                                setDescuentos([])
                                             }
                                         }}
                                     />
@@ -922,104 +962,80 @@ function VentaPage() {
 
                                 <div className="descuento-form">
 
-                                    <div className="descuento-campo">
+                                    {vendedoresEnCarrito.length === 0 ? (
 
-                                        <label htmlFor="montoDescuento">
-                                            Monto
-                                        </label>
+                                        <p>
+                                            Agrega productos para
+                                            seleccionar descuentos.
+                                        </p>
 
-                                        <div className="descuento-monto">
+                                    ) : (
 
-                                            <span>
-                                                $
-                                            </span>
+                                        vendedoresEnCarrito.map(
+                                            vendedor => (
 
-                                            <input
-                                                id="montoDescuento"
-                                                type="number"
-                                                min="1"
-                                                value={montoDescuento}
-                                                placeholder="0"
-                                                onChange={(e) =>
-                                                    setMontoDescuento(
-                                                        e.target.value
-                                                    )
-                                                }
-                                            />
-
-                                        </div>
-
-                                    </div>
-
-                                    <div className="descuento-campo">
-
-                                        <label htmlFor="vendedorDescuento">
-                                            Otorgado por
-                                        </label>
-
-                                        <select
-                                            id="vendedorDescuento"
-                                            value={vendedorDescuentoId}
-                                            onChange={(e) =>
-                                                setVendedorDescuentoId(
-                                                    e.target.value
-                                                )
-                                            }
-                                            disabled={
-                                                vendedoresEnCarrito.length === 1
-                                            }
-                                        >
-
-                                            {vendedoresEnCarrito.length === 1 ? (
-
-                                                <option
-                                                    value={
-                                                        vendedoresEnCarrito[0].id
+                                                <div
+                                                    key={
+                                                        vendedor.id
                                                     }
+                                                    className="descuento-campo"
                                                 >
-                                                    {
-                                                        vendedoresEnCarrito[0]
-                                                            .nombre
+
+                                                    <label
+                                                        htmlFor={
+                                                            `descuento-${vendedor.id}`
+                                                        }
+                                                    >
+                                                        {vendedor.nombre}
+                                                    </label>
+
+                                                    <div className="descuento-monto">
+
+                                                        <span>
+                                                            $
+                                                        </span>
+
+                                                        <input
+                                                            id={
+                                                                `descuento-${vendedor.id}`
+                                                            }
+                                                            type="number"
+                                                            min="0"
+                                                            step="1"
+                                                            value={
+                                                                obtenerDescuentoVendedor(
+                                                                    vendedor.id
+                                                                )
+                                                            }
+                                                            placeholder="0"
+                                                            onChange={(
+                                                                e
+                                                            ) =>
+                                                                actualizarDescuento(
+                                                                    vendedor.id,
+                                                                    e.target.value
+                                                                )
+                                                            }
+                                                        />
+
+                                                    </div>
+
+                                                    <small>
+                                                        Subtotal de {vendedor.nombre}:
+                                                        {' '}
+                                                        ${
+                                                        subtotalPorVendedor[
+                                                            vendedor.id
+                                                            ] || 0
                                                     }
-                                                </option>
+                                                    </small>
 
-                                            ) : (
+                                                </div>
 
-                                                <>
-                                                    <option value="">
-                                                        Selecciona vendedor
-                                                    </option>
+                                            )
+                                        )
 
-                                                    {vendedoresEnCarrito.map(
-                                                        vendedor => (
-
-                                                            <option
-                                                                key={
-                                                                    vendedor.id
-                                                                }
-                                                                value={
-                                                                    vendedor.id
-                                                                }
-                                                            >
-                                                                {
-                                                                    vendedor.nombre
-                                                                }
-                                                                {' — $'}
-                                                                {
-                                                                    subtotalPorVendedor[
-                                                                        vendedor.id
-                                                                        ] || 0
-                                                                }
-                                                            </option>
-
-                                                        )
-                                                    )}
-                                                </>
-                                            )}
-
-                                        </select>
-
-                                    </div>
+                                    )}
 
                                 </div>
                             )}
@@ -1047,7 +1063,7 @@ function VentaPage() {
                                 </span>
 
                                 <strong>
-                                    ${descuento}
+                                    -${descuentoTotal}
                                 </strong>
 
                             </div>
@@ -1079,7 +1095,9 @@ function VentaPage() {
                                 placeholder="Ej. Juan"
                                 maxLength={100}
                                 onChange={(e) =>
-                                    setNombreCliente(e.target.value)
+                                    setNombreCliente(
+                                        e.target.value
+                                    )
                                 }
                             />
 
@@ -1127,7 +1145,9 @@ function VentaPage() {
                                         : ''
                                 }
                                 onClick={() =>
-                                    setMetodoPago('TRANSFERENCIA')
+                                    setMetodoPago(
+                                        'TRANSFERENCIA'
+                                    )
                                 }
                             >
                                 Transferencia

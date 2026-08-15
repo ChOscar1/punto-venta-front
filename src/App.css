@@ -1234,3 +1234,19 @@
   border-radius: 7px;
   color: #a52828;
 }
+
+.venta-pendiente-cancelar {
+  width: 100%;
+  margin-top: 10px;
+  padding: 12px;
+  border: none;
+  border-radius: 7px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.venta-pendiente-cancelar:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

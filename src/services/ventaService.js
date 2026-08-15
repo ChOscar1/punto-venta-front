@@ -73,3 +73,25 @@ export const entregarPedido = async (id) => {
 
     return data
 }
+
+export const cancelarPedido = async (id) => {
+
+    const response = await apiFetch(
+        `/punto-venta/pedidos/${id}/cancelar`,
+        {
+            method: 'PUT'
+        }
+    )
+
+    const data = await response.json()
+
+    if (!response.ok) {
+        throw new Error(
+            data.message ||
+            data.descripcionError ||
+            'Error al cancelar el pedido'
+        )
+    }
+
+    return data
+}
