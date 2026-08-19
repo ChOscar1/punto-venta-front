@@ -95,3 +95,29 @@ export const cancelarPedido = async (id) => {
 
     return data
 }
+
+export const registrarPago = async (id, monto) => {
+
+    const response = await apiFetch(
+        `/punto-venta/pedidos/${id}/registrar-pago`,
+        {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(Number(monto))
+        }
+    )
+
+    const data = await response.json()
+
+    if (!response.ok) {
+        throw new Error(
+            data.message ||
+            data.descripcionError ||
+            'Error al registrar el pago'
+        )
+    }
+
+    return data
+}

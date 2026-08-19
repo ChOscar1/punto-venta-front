@@ -3,17 +3,37 @@ import { descargarReporteExcel } from '../services/reporteService'
 
 function ReportePage() {
 
-    const [fecha, setFecha] = useState(() => {
+    const obtenerFechaHoraActual = () => {
 
-        const hoy = new Date()
+        const ahora = new Date()
 
-        const año = hoy.getFullYear()
-        const mes = String(hoy.getMonth() + 1).padStart(2, '0')
-        const dia = String(hoy.getDate()).padStart(2, '0')
+        const año = ahora.getFullYear()
+        const mes = String(ahora.getMonth() + 1).padStart(2, '0')
+        const dia = String(ahora.getDate()).padStart(2, '0')
+        const hora = String(ahora.getHours()).padStart(2, '0')
+        const minutos = String(ahora.getMinutes()).padStart(2, '0')
 
-        return `${año}-${mes}-${dia}`
+        return `${año}-${mes}-${dia}T${hora}:${minutos}`
+    }
+
+
+    const [fechaInicio, setFechaInicio] = useState(() => {
+
+        const ahora = new Date()
+
+        const año = ahora.getFullYear()
+        const mes = String(ahora.getMonth() + 1).padStart(2, '0')
+        const dia = String(ahora.getDate()).padStart(2, '0')
+
+        return `${año}-${mes}-${dia}T19:00`
 
     })
+
+
+    const [fechaFin, setFechaFin] = useState(() =>
+        obtenerFechaHoraActual()
+    )
+
 
     const [generando, setGenerando] = useState(false)
 
@@ -22,12 +42,25 @@ function ReportePage() {
 
     const manejarDescarga = async () => {
 
-        if (!fecha) {
+        if (!fechaInicio || !fechaFin) {
 
-            setError('Debes seleccionar una fecha')
+            setError(
+                'Debes seleccionar la fecha y hora de inicio y fin'
+            )
 
             return
         }
+
+
+        if (fechaInicio >= fechaFin) {
+
+            setError(
+                'La fecha y hora de inicio debe ser anterior a la fecha y hora de fin'
+            )
+
+            return
+        }
+
 
         try {
 
@@ -35,7 +68,10 @@ function ReportePage() {
 
             setGenerando(true)
 
-            await descargarReporteExcel(fecha)
+            await descargarReporteExcel(
+                fechaInicio,
+                fechaFin
+            )
 
         } catch (error) {
 
@@ -44,7 +80,10 @@ function ReportePage() {
                 error
             )
 
-            setError(error.message)
+            setError(
+                error.message ||
+                'Ocurrió un error al generar el reporte'
+            )
 
         } finally {
 
@@ -67,8 +106,9 @@ function ReportePage() {
                     </h1>
 
                     <p>
-                        Genera el reporte de ventas
-                        correspondiente a una fecha.
+                        Genera un reporte de ventas
+                        seleccionando un rango de fecha
+                        y hora.
                     </p>
 
                 </div>
@@ -80,16 +120,36 @@ function ReportePage() {
 
                 <div className="reporte-campo">
 
-                    <label htmlFor="fecha">
-                        Fecha
+                    <label htmlFor="fechaInicio">
+                        Desde
                     </label>
 
                     <input
-                        id="fecha"
-                        type="date"
-                        value={fecha}
+                        id="fechaInicio"
+                        type="datetime-local"
+                        value={fechaInicio}
                         onChange={event =>
-                            setFecha(
+                            setFechaInicio(
+                                event.target.value
+                            )
+                        }
+                    />
+
+                </div>
+
+
+                <div className="reporte-campo">
+
+                    <label htmlFor="fechaFin">
+                        Hasta
+                    </label>
+
+                    <input
+                        id="fechaFin"
+                        type="datetime-local"
+                        value={fechaFin}
+                        onChange={event =>
+                            setFechaFin(
                                 event.target.value
                             )
                         }

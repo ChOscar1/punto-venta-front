@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react'
 import {
     obtenerPedidosPendientes,
     entregarPedido,
-    cancelarPedido
+    cancelarPedido,
+    registrarPago
 } from '../services/ventaService'
 
 function PedidosPendientesPage() {
@@ -12,6 +13,7 @@ function PedidosPendientesPage() {
     const [error, setError] = useState('')
     const [entregando, setEntregando] = useState(null)
     const [cancelando, setCancelando] = useState(null)
+    const [pagando, setPagando] = useState(null)
 
     const cargarPedidos = async () => {
 
@@ -102,6 +104,41 @@ function PedidosPendientesPage() {
         } finally {
 
             setCancelando(null)
+        }
+    }
+
+    const manejarPago = async (id, monto) => {
+
+        if (!monto || monto <= 0) {
+            alert('Ingresa un monto válido')
+            return
+        }
+
+        try {
+
+            setError('')
+            setPagando(id)
+
+            const pedidoActualizado =
+                await registrarPago(id, monto)
+
+            setPedidos(
+                pedidos.map(pedido =>
+                    pedido.id === id
+                        ? pedidoActualizado
+                        : pedido
+                )
+            )
+
+        } catch (error) {
+
+            console.error(error)
+
+            setError(error.message)
+
+        } finally {
+
+            setPagando(null)
         }
     }
 
@@ -203,12 +240,12 @@ function PedidosPendientesPage() {
                                 </div>
 
                                 <span className="venta-pendiente-estado">
-                                    {pedido.estado}
-                                </span>
+                                {pedido.estado}
+                            </span>
 
                             </div>
 
-
+                            <div className="venta-pendiente-contenido">
                             {pedido.ventas.map(venta => (
 
                                 <div
@@ -246,10 +283,10 @@ function PedidosPendientesPage() {
                                                         </strong>
 
                                                         <span>
-                                                            {producto.cantidad}
+                                                        {producto.cantidad}
                                                             {' x $'}
                                                             {producto.precioUnitario}
-                                                        </span>
+                                                    </span>
 
                                                     </div>
 
@@ -269,9 +306,9 @@ function PedidosPendientesPage() {
 
                                         <div>
 
-                                            <span>
-                                                Subtotal
-                                            </span>
+                                        <span>
+                                            Subtotal
+                                        </span>
 
                                             <strong>
                                                 ${venta.subtotal}
@@ -284,9 +321,9 @@ function PedidosPendientesPage() {
 
                                             <div className="venta-pendiente-descuento">
 
-                                                <span>
-                                                    Descuento
-                                                </span>
+                                            <span>
+                                                Descuento
+                                            </span>
 
                                                 <strong>
                                                     -${venta.descuento}
@@ -299,9 +336,9 @@ function PedidosPendientesPage() {
 
                                         <div>
 
-                                            <span>
-                                                Total {venta.vendedor}
-                                            </span>
+                                        <span>
+                                            Total {venta.vendedor}
+                                        </span>
 
                                             <strong>
                                                 ${venta.total}
@@ -314,19 +351,182 @@ function PedidosPendientesPage() {
                                 </div>
 
                             ))}
-
+                            </div>
 
                             <div className="pedido-total">
 
-                                <span>
-                                    Total del pedido
-                                </span>
+                            <span>
+                                Total del pedido
+                            </span>
 
                                 <strong>
                                     ${pedido.total}
                                 </strong>
 
                             </div>
+
+
+                            {/* ESTADO DEL PAGO */}
+
+                            <div className="pedido-pago">
+
+                                <h3>
+                                    Estado del pago
+                                </h3>
+
+                                {pedido.estadoPago === 'PAGADO' && (
+
+                                    <div className="pedido-pago-completo">
+
+                                    <span>
+                                        ✓ Pedido pagado
+                                    </span>
+
+                                        <strong>
+                                            ${pedido.montoPagado}
+                                        </strong>
+
+                                    </div>
+
+                                )}
+
+                                {pedido.estadoPago === 'ANTICIPO' && (
+
+                                    <div className="pedido-pago-anticipo">
+
+                                        <div>
+
+                                        <span>
+                                            Adelanto
+                                        </span>
+
+                                            <strong>
+                                                ${pedido.montoPagado}
+                                            </strong>
+
+                                        </div>
+
+                                        <div>
+
+                                        <span>
+                                            Pendiente por pagar
+                                        </span>
+
+                                            <strong>
+                                                ${pedido.montoPendiente}
+                                            </strong>
+
+                                        </div>
+
+                                    </div>
+
+                                )}
+
+                                {pedido.estadoPago === 'SIN_PAGAR' && (
+
+                                    <div className="pedido-pago-sin-pagar">
+
+                                    <span>
+                                        Sin pagar
+                                    </span>
+
+                                        <strong>
+                                            ${pedido.montoPendiente}
+                                        </strong>
+
+                                    </div>
+
+                                )}
+
+                                {/* REGISTRAR PAGO */}
+
+                                {pedido.estadoPago !== 'PAGADO' && (
+
+                                    <div className="pedido-registrar-pago">
+
+                                        <label
+                                            htmlFor={`pago-${pedido.id}`}
+                                        >
+                                            Registrar pago
+                                        </label>
+
+                                        <div className="pedido-registrar-pago-form">
+
+                                            <input
+                                                id={`pago-${pedido.id}`}
+                                                type="number"
+                                                min="1"
+                                                max={pedido.montoPendiente}
+                                                placeholder="Monto"
+                                            />
+
+                                            <button
+                                                type="button"
+                                                disabled={
+                                                    pagando === pedido.id
+                                                }
+                                                onClick={() => {
+
+                                                    const input =
+                                                        document.getElementById(
+                                                            `pago-${pedido.id}`
+                                                        )
+
+                                                    const monto =
+                                                        Number(input.value)
+
+                                                    if (!monto || monto <= 0) {
+
+                                                        alert(
+                                                            'Ingresa un monto válido'
+                                                        )
+
+                                                        return
+                                                    }
+
+                                                    if (
+                                                        monto >
+                                                        pedido.montoPendiente
+                                                    ) {
+
+                                                        alert(
+                                                            'El monto no puede ser mayor al pendiente'
+                                                        )
+
+                                                        return
+                                                    }
+
+                                                    manejarPago(
+                                                        pedido.id,
+                                                        monto
+                                                    )
+
+                                                    input.value = ''
+
+                                                }}
+                                            >
+
+                                                {pagando === pedido.id
+                                                    ? 'Registrando...'
+                                                    : 'Registrar pago'
+                                                }
+
+                                            </button>
+
+                                        </div>
+
+                                        <small>
+                                            Pendiente por pagar:
+                                            {' '}
+                                            ${pedido.montoPendiente}
+                                        </small>
+
+                                    </div>
+
+                                )}
+
+                            </div>
+
 
                             <div className="venta-pendiente-acciones">
 
@@ -335,7 +535,8 @@ function PedidosPendientesPage() {
                                     className="venta-pendiente-entregar"
                                     disabled={
                                         entregando === pedido.id ||
-                                        cancelando === pedido.id
+                                        cancelando === pedido.id ||
+                                        pagando === pedido.id
                                     }
                                     onClick={() =>
                                         manejarEntregar(pedido.id)
@@ -349,12 +550,14 @@ function PedidosPendientesPage() {
 
                                 </button>
 
+
                                 <button
                                     type="button"
                                     className="venta-pendiente-cancelar"
                                     disabled={
                                         entregando === pedido.id ||
-                                        cancelando === pedido.id
+                                        cancelando === pedido.id ||
+                                        pagando === pedido.id
                                     }
                                     onClick={() =>
                                         manejarCancelar(pedido.id)

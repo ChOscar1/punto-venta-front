@@ -4,17 +4,6 @@ import { obtenerProductos } from '../services/productoService'
 import { obtenerCategorias } from '../services/categoriaService'
 import { obtenerVendedores } from '../services/vendedorService'
 
-import alitasImg from '../assets/alitas.jpg'
-import costillasImg from '../assets/costillas.jpg'
-import micheladaImg from '../assets/michelada.png'
-import micheladaCamImg from '../assets/micheladaCamaron.png'
-import sodaItaImg from '../assets/sodaItaliana.png'
-import totoposCamImg from '../assets/totoposCamaron.png'
-import totoposCueImg from '../assets/totoposCuertiso.png'
-import papasLocasImg from '../assets/papasLocas.png'
-import brochetasCamImg from '../assets/brochetasCam.png'
-import codilloImg from '../assets/codilloImg.png'
-import alitasPromo from '../assets/alitasPromoImg.png'
 
 function VentaPage() {
 
@@ -33,6 +22,9 @@ function VentaPage() {
     const [descuentos, setDescuentos] = useState([])
 
     const [nombreCliente, setNombreCliente] = useState('')
+
+    const [estadoPago, setEstadoPago] = useState('SIN_PAGAR')
+    const [montoPagado, setMontoPagado] = useState('')
 
     const imagenesProductos = {
         1: alitasImg,
@@ -424,29 +416,51 @@ function VentaPage() {
             }
         }
 
-        const venta = {
+        if (estadoPago === 'ANTICIPO') {
 
-            nombreCliente:
-                nombreCliente.trim(),
+            if (
+                !montoPagado ||
+                Number(montoPagado) <= 0
+            ) {
+                alert(
+                    'Debes ingresar el monto del adelanto'
+                )
+
+                return
+            }
+
+            if (Number(montoPagado) > total) {
+
+                alert(
+                    'El adelanto no puede ser mayor al total del pedido'
+                )
+
+                return
+            }
+        }
+
+        const venta = {
+            nombreCliente: nombreCliente.trim(),
 
             metodoPago,
 
-            /*
-             * NUEVO
-             */
-            descuentos: tieneDescuento
-                ? descuentos
-                : [],
+            estadoPago,
 
-            productos:
-                carrito.map(
-                    producto => ({
-                        productoId:
-                        producto.id,
-                        cantidad:
-                        producto.cantidad
-                    })
-                )
+            montoPagado:
+                estadoPago === 'SIN_PAGAR'
+                    ? 0
+                    : estadoPago === 'PAGADO'
+                        ? total
+                        : Number(montoPagado),
+
+            descuentos: descuentos,
+
+            productos: carrito.map(
+                producto => ({
+                    productoId: producto.id,
+                    cantidad: producto.cantidad
+                })
+            )
         }
 
         try {
@@ -465,6 +479,10 @@ function VentaPage() {
             setTieneDescuento(false)
 
             setDescuentos([])
+
+            setEstadoPago('SIN_PAGAR')
+
+            setMontoPagado('')
 
         } catch (error) {
 
@@ -916,6 +934,7 @@ function VentaPage() {
                             ))
                         )}
 
+
                         <div className="descuento-section">
 
                             <div className="descuento-header">
@@ -1079,6 +1098,100 @@ function VentaPage() {
                                 </strong>
 
                             </div>
+
+                        </div>
+
+                        <div className="pago-pedido">
+
+                            <h3>
+                                Pago del pedido
+                            </h3>
+
+                            <div className="pago-pedido-opciones">
+
+                                <label>
+
+                                    <input
+                                        type="radio"
+                                        name="estadoPago"
+                                        value="SIN_PAGAR"
+                                        checked={estadoPago === 'SIN_PAGAR'}
+                                        onChange={(e) =>
+                                            setEstadoPago(e.target.value)
+                                        }
+                                    />
+
+                                    Sin pagar
+
+                                </label>
+
+                                <label>
+
+                                    <input
+                                        type="radio"
+                                        name="estadoPago"
+                                        value="ANTICIPO"
+                                        checked={estadoPago === 'ANTICIPO'}
+                                        onChange={(e) => {
+                                            setEstadoPago(e.target.value)
+                                            setMontoPagado('')
+                                        }}
+                                    />
+
+                                    Adelanto
+
+                                </label>
+
+                                <label>
+
+                                    <input
+                                        type="radio"
+                                        name="estadoPago"
+                                        value="PAGADO"
+                                        checked={estadoPago === 'PAGADO'}
+                                        onChange={(e) => {
+                                            setEstadoPago(e.target.value)
+                                            setMontoPagado(total)
+                                        }}
+                                    />
+
+                                    Pagado completo
+
+                                </label>
+
+                            </div>
+
+
+                            {estadoPago === 'ANTICIPO' && (
+
+                                <div className="pago-pedido-adelanto">
+
+                                    <label htmlFor="montoPagado">
+                                        Monto del adelanto
+                                    </label>
+
+                                    <input
+                                        id="montoPagado"
+                                        type="number"
+                                        min="1"
+                                        max={total - 1}
+                                        value={montoPagado}
+                                        onChange={(e) =>
+                                            setMontoPagado(e.target.value)
+                                        }
+                                    />
+
+                                    <span>
+                Pendiente por pagar: $
+                                        {Math.max(
+                                            total - (Number(montoPagado) || 0),
+                                            0
+                                        )}
+            </span>
+
+                                </div>
+
+                            )}
 
                         </div>
 

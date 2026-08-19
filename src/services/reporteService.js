@@ -1,9 +1,12 @@
 import { apiFetch } from './api'
 
-export const descargarReporteExcel = async (fecha) => {
+export const descargarReporteExcel = async (
+    fechaInicio,
+    fechaFin
+) => {
 
     const response = await apiFetch(
-        `/punto-venta/reporte/ventas/excel?fecha=${fecha}`
+        `/punto-venta/reporte/ventas/excel?inicio=${encodeURIComponent(fechaInicio)}&fin=${encodeURIComponent(fechaFin)}`
     )
 
     if (!response.ok) {
@@ -31,7 +34,8 @@ export const descargarReporteExcel = async (fecha) => {
 
     enlace.href = url
 
-    enlace.download = `reporte-ventas-${fecha}.xlsx`
+    enlace.download =
+        `reporte-ventas-${fechaInicio.replace(/[:]/g, '-')}-${fechaFin.replace(/[:]/g, '-')}.xlsx`
 
     document.body.appendChild(enlace)
 
