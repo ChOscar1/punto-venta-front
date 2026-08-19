@@ -4,6 +4,17 @@ import { obtenerProductos } from '../services/productoService'
 import { obtenerCategorias } from '../services/categoriaService'
 import { obtenerVendedores } from '../services/vendedorService'
 
+import alitasImg from '../assets/alitas.jpg'
+import costillasImg from '../assets/costillas.jpg'
+import micheladaImg from '../assets/michelada.png'
+import micheladaCamImg from '../assets/micheladaCamaron.png'
+import sodaItaImg from '../assets/sodaItaliana.png'
+import totoposCamImg from '../assets/totoposCamaron.png'
+import totoposCueImg from '../assets/totoposCuertiso.png'
+import papasLocasImg from '../assets/papasLocas.png'
+import brochetasCamImg from '../assets/brochetasCam.png'
+import codilloImg from '../assets/codilloImg.png'
+import alitasPromo from '../assets/alitasPromoImg.png'
 
 function VentaPage() {
 
